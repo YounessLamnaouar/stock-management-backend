@@ -1,0 +1,4 @@
+=> 1 may:
+-migration des tables(makhdmatch mabghawch ybano f phpmyadmin)
+-modifit les models(User, Role, Produit, Categorie, Stock, Entrepot, MouvementStock, Niveau, Status, Tracability, TypeMouvement, AlertStock)
+
