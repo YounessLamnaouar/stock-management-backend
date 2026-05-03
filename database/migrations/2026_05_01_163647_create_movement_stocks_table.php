@@ -29,9 +29,15 @@ return new class extends Migration
                 ->constrained('type_mouvements')
                 ->cascadeOnDelete();
 
-            $table->foreignId('entrepot_id')
+            $table->foreignId('entrepot_source_id')
+                ->nullable()
                 ->constrained('entrepots')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
+
+            $table->foreignId('entrepot_destination_id')
+                ->nullable()
+                ->constrained('entrepots')
+                ->nullOnDelete();
 
             $table->timestamps();
         });

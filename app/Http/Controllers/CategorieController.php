@@ -13,7 +13,7 @@ class CategorieController extends Controller
      */
     public function index()
     {
-        //
+        return Categorie::with('produits')->get();
     }
 
     /**
