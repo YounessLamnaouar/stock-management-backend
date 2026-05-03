@@ -13,7 +13,7 @@ class EntrepotController extends Controller
      */
     public function index()
     {
-        //
+        return Entrepot::with('stocks.produit')->get();
     }
 
     /**
@@ -29,7 +29,14 @@ class EntrepotController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'nomEntrepot' => 'required|string|max:255',
+            'adresse' => 'nullable|string',
+            'ville' => 'nullable|string',
+            'capacite' => 'nullable|integer',
+        ]);
+
+        return Entrepot::create($data);
     }
 
     /**
@@ -37,7 +44,7 @@ class EntrepotController extends Controller
      */
     public function show(Entrepot $entrepot)
     {
-        //
+        return $entrepot->load('stocks.produit');
     }
 
     /**
@@ -53,7 +60,15 @@ class EntrepotController extends Controller
      */
     public function update(Request $request, Entrepot $entrepot)
     {
-        //
+        $data = $request->validate([
+            'nomEntrepot' => 'required|string|max:255',
+            'adresse' => 'nullable|string',
+            'ville' => 'nullable|string',
+            'capacite' => 'nullable|integer',
+        ]);
+
+        $entrepot->update($data);
+        return $entrepot;
     }
 
     /**
@@ -61,6 +76,7 @@ class EntrepotController extends Controller
      */
     public function destroy(Entrepot $entrepot)
     {
-        //
+        $entrepot->delete();
+        return response()->json(['message' => 'Entrepôt supprimé']);
     }
 }
