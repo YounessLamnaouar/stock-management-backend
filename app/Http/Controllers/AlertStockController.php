@@ -3,64 +3,37 @@
 namespace App\Http\Controllers;
 
 use App\Models\AlertStock;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class AlertStockController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return AlertStock::with('produit', 'stock.entrepot', 'niveau', 'statut')
+            ->orderBy('dateAlerte', 'desc')
+            ->get();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show(AlertStock $alertStock)
     {
-        //
+        return $alertStock->load('produit', 'stock.entrepot', 'niveau', 'statut');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(AlertStock $alertStock)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
+    // Only statut can be updated (clôturer an alert)
     public function update(Request $request, AlertStock $alertStock)
     {
-        //
+        $data = $request->validate([
+            'statut_id' => 'required|exists:statuts,id',
+        ]);
+
+        $alertStock->update($data);
+
+        return response()->json($alertStock->load('produit', 'stock.entrepot', 'niveau', 'statut'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(AlertStock $alertStock)
     {
-        //
+        $alertStock->delete();
+        return response()->json(['message' => 'Alerte supprimée']);
     }
 }

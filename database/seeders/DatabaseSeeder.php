@@ -27,14 +27,41 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-        // 3 may
-        $this->call([RoleSeeder::class, TypeMouvementSeeder::class]);
+        $this->call([
+            RoleSeeder::class,
+            TypeMouvementSeeder::class,
+            StatutSeeder::class,
+            NiveauSeeder::class,
+        ]);
 
+        // Default admin account
         User::create([
-            'name' => 'Admin',
-            'email' => 'admin@gmail.com',
+            'name'     => 'Admin',
+            'prenom'   => 'Super',
+            'email'    => 'admin@gmail.com',
             'password' => bcrypt('123456'),
-            'role_id' => 1,
+            'role_id'  => 1,
+            'statut'   => 'Actif',
+        ]);
+
+        // Sample gestionnaire
+        User::create([
+            'name'     => 'Gestionnaire',
+            'prenom'   => 'Marie',
+            'email'    => 'gestionnaire@gmail.com',
+            'password' => bcrypt('123456'),
+            'role_id'  => 2,
+            'statut'   => 'Actif',
+        ]);
+
+        // Sample agent
+        User::create([
+            'name'     => 'Agent',
+            'prenom'   => 'Ahmed',
+            'email'    => 'agent@gmail.com',
+            'password' => bcrypt('123456'),
+            'role_id'  => 3,
+            'statut'   => 'Actif',
         ]);
 
         Categorie::factory(10)->create();

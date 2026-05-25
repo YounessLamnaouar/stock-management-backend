@@ -14,6 +14,7 @@ class MovementStock extends Model
         'dateMouvement',
         'quantite',
         'commentaire',
+        'statut',
         'user_id',
         'produit_id',
         'type_mouvement_id',

@@ -13,13 +13,20 @@ class Tracabilite extends Model
     protected $fillable = [
         'action',
         'description',
+        'ancienneQuantite',
+        'nouvelleQuantite',
         'dateAction',
         'user_id',
+        'produit_id',
     ];
 
-    // Relation : une trace appartient à un utilisateur
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function produit()
+    {
+        return $this->belongsTo(Produit::class);
     }
 }
