@@ -12,19 +12,13 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class StockFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'quantiteDisponible' => fake()->numberBetween(0, 500),
-            'seuilMin' => fake()->numberBetween(5, 20),
-            'dateDerniereMaj' => now(),
-            'produit_id' => Produit::inRandomOrder()->first()?->id,
-            'entrepot_id' => Entrepot::inRandomOrder()->first()?->id,
+            'quantite'      => fake()->numberBetween(0, 500),
+            'dateMiseAJour' => now(),
+            'produit_id'    => Produit::inRandomOrder()->first()?->id,
+            'entrepot_id'   => Entrepot::inRandomOrder()->first()?->id,
         ];
     }
 }

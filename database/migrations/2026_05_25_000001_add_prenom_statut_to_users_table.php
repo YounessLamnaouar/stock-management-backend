@@ -10,14 +10,13 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('prenom')->nullable()->after('name');
-            $table->string('statut')->default('Actif')->after('role_id');
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['prenom', 'statut']);
+            $table->dropColumn(['prenom']);
         });
     }
 };

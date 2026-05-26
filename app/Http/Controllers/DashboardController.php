@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AlertStock;
 use App\Models\Entrepot;
 use App\Models\MovementStock;
 use App\Models\Produit;
@@ -13,23 +12,16 @@ class DashboardController extends Controller
 {
     public function stats()
     {
-        $totalProduits  = Produit::count();
-        $totalEntrepots = Entrepot::count();
-        $totalTransferts = MovementStock::whereHas('typeMouvement', fn($q) => $q->where('nomType', 'Transfert'))->count();
-        $alertesActives = AlertStock::where('statut_id', 1)->count();
-
-        $stockFaible = Stock::whereColumn('quantiteDisponible', '<=', 'seuilMin')
-            ->where('quantiteDisponible', '>', 0)
-            ->where('seuilMin', '>', 0)
-            ->count();
-
-        $ruptures = Stock::where('quantiteDisponible', 0)->count();
+        $totalProduits   = Produit::count();
+        $totalEntrepots  = Entrepot::count();
+        $totalMouvements = MovementStock::count();
+        $ruptures        = Stock::where('quantite', 0)->count();
 
         // Stock by warehouse for bar chart
-        $stockParEntrepot = Entrepot::withSum('stocks', 'quantiteDisponible')->get()
+        $stockParEntrepot = Entrepot::withSum('stocks', 'quantite')->get()
             ->map(fn($e) => [
                 'name'     => $e->nomEntrepot,
-                'stock'    => (int) $e->stocks_sum_quantite_disponible,
+                'stock'    => (int) $e->stocks_sum_quantite,
                 'capacite' => $e->capacite ?? 0,
             ]);
 
@@ -43,30 +35,20 @@ class DashboardController extends Controller
                 'value' => $p->total,
             ]);
 
-        // Recent transfers
-        $recentTransferts = MovementStock::with('produit', 'user', 'entrepotSource', 'entrepotDestination')
-            ->whereHas('typeMouvement', fn($q) => $q->where('nomType', 'Transfert'))
+        // Recent movements
+        $recentMouvements = MovementStock::with('produit', 'user', 'statusMouvement', 'entrepotSource', 'entrepotDestination')
             ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-
-        // Recent alerts
-        $recentAlertes = AlertStock::with('produit', 'stock.entrepot', 'niveau', 'statut')
-            ->orderBy('dateAlerte', 'desc')
             ->limit(5)
             ->get();
 
         return response()->json([
             'totalProduits'        => $totalProduits,
             'totalEntrepots'       => $totalEntrepots,
-            'totalTransferts'      => $totalTransferts,
-            'alertesActives'       => $alertesActives,
-            'stockFaible'          => $stockFaible,
+            'totalMouvements'      => $totalMouvements,
             'ruptures'             => $ruptures,
             'stockParEntrepot'     => $stockParEntrepot,
             'produitsParCategorie' => $produitsParCategorie,
-            'recentTransferts'     => $recentTransferts,
-            'recentAlertes'        => $recentAlertes,
+            'recentMouvements'     => $recentMouvements,
         ]);
     }
 }

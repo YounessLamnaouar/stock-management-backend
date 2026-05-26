@@ -1,15 +1,14 @@
 <?php
 
-use App\Http\Controllers\AlertStockController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EntrepotController;
 use App\Http\Controllers\MovementStockController;
 use App\Http\Controllers\ProduitController;
+use App\Http\Controllers\StatusMouvementController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\TracabiliteController;
-use App\Http\Controllers\TypeMouvementController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,24 +26,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'stats']);
 
     // ── Agent + Gestionnaire + Admin ──
-    Route::get('categories',        [CategorieController::class, 'index']);
-    Route::get('categories/{categorie}', [CategorieController::class, 'show']);
+    Route::get('categories',              [CategorieController::class, 'index']);
+    Route::get('categories/{categorie}',  [CategorieController::class, 'show']);
 
-    Route::get('produits',          [ProduitController::class, 'index']);
-    Route::get('produits/{produit}', [ProduitController::class, 'show']);
+    Route::get('produits',                [ProduitController::class, 'index']);
+    Route::get('produits/{produit}',      [ProduitController::class, 'show']);
 
-    Route::get('entrepots',         [EntrepotController::class, 'index']);
-    Route::get('entrepots/{entrepot}', [EntrepotController::class, 'show']);
+    Route::get('entrepots',               [EntrepotController::class, 'index']);
+    Route::get('entrepots/{entrepot}',    [EntrepotController::class, 'show']);
 
-    Route::get('stocks',            [StockController::class, 'index']);
-    Route::get('stocks/{stock}',    [StockController::class, 'show']);
+    Route::get('stocks',                  [StockController::class, 'index']);
+    Route::get('stocks/{stock}',          [StockController::class, 'show']);
 
-    Route::get('movement-stocks',           [MovementStockController::class, 'index']);
-    Route::get('movement-stocks/{movementStock}', [MovementStockController::class, 'show']);
-    Route::post('movement-stocks',          [MovementStockController::class, 'store']);
-    Route::get('movement-stocks/export/csv', [MovementStockController::class, 'export']);
+    Route::get('movement-stocks',                    [MovementStockController::class, 'index']);
+    Route::get('movement-stocks/{movementStock}',    [MovementStockController::class, 'show']);
+    Route::post('movement-stocks',                   [MovementStockController::class, 'store']);
+    Route::get('movement-stocks/export/csv',         [MovementStockController::class, 'export']);
 
-    Route::get('type-mouvements', [TypeMouvementController::class, 'index']);
+    Route::get('status-mouvements', [StatusMouvementController::class, 'index']);
 
     // ── Gestionnaire + Admin ──
     Route::middleware('role:Gestionnaire,Admin')->group(function () {
@@ -57,12 +56,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('movement-stocks/{movementStock}',    [MovementStockController::class, 'update']);
         Route::patch('movement-stocks/{movementStock}',  [MovementStockController::class, 'update']);
         Route::delete('movement-stocks/{movementStock}', [MovementStockController::class, 'destroy']);
-
-        Route::get('alert-stocks',              [AlertStockController::class, 'index']);
-        Route::get('alert-stocks/{alertStock}', [AlertStockController::class, 'show']);
-        Route::put('alert-stocks/{alertStock}', [AlertStockController::class, 'update']);
-        Route::patch('alert-stocks/{alertStock}', [AlertStockController::class, 'update']);
-        Route::delete('alert-stocks/{alertStock}', [AlertStockController::class, 'destroy']);
 
         Route::get('tracabilites',               [TracabiliteController::class, 'index']);
         Route::get('tracabilites/{tracabilite}', [TracabiliteController::class, 'show']);
@@ -88,6 +81,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::apiResource('users', UserController::class);
 
-        Route::apiResource('type-mouvements', TypeMouvementController::class)->except('index');
+        Route::post('status-mouvements',                    [StatusMouvementController::class, 'store']);
+        Route::put('status-mouvements/{statusMouvement}',   [StatusMouvementController::class, 'update']);
+        Route::patch('status-mouvements/{statusMouvement}', [StatusMouvementController::class, 'update']);
+        Route::delete('status-mouvements/{statusMouvement}',[StatusMouvementController::class, 'destroy']);
     });
 });

@@ -18,7 +18,7 @@ return new class extends Migration
             AFTER UPDATE ON stocks
             FOR EACH ROW
             BEGIN
-                IF NEW.quantiteDisponible != OLD.quantiteDisponible THEN
+                IF NEW.quantite != OLD.quantite THEN
                     INSERT INTO tracabilites (
                         action,
                         description,
@@ -32,9 +32,9 @@ return new class extends Migration
                     )
                     VALUES (
                         \'UPDATE_STOCK\',
-                        CONCAT(\'Quantité modifiée de \', OLD.quantiteDisponible, \' à \', NEW.quantiteDisponible),
-                        OLD.quantiteDisponible,
-                        NEW.quantiteDisponible,
+                        CONCAT(\'Quantité modifiée de \', OLD.quantite, \' à \', NEW.quantite),
+                        OLD.quantite,
+                        NEW.quantite,
                         NEW.produit_id,
                         COALESCE((SELECT user_id FROM stock_user_context LIMIT 1), 1),
                         NOW(),

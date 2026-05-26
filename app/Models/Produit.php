@@ -37,9 +37,8 @@ class Produit extends Model
         return $this->hasMany(MovementStock::class);
     }
 
-    // Relation : un produit peut déclencher plusieurs alertes
-    public function alertStocks()
+    public function tracabilites()
     {
-        return $this->hasMany(AlertStock::class);
+        return $this->hasMany(Tracabilite::class);
     }
 }
