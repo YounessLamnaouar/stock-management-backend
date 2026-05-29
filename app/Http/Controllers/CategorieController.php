@@ -31,7 +31,6 @@ class CategorieController extends Controller
     {
         $data = $request->validate([
             'nomCategorie' => 'required|string|max:255',
-            'description' => 'nullable|string',
         ]);
 
         return Categorie::create($data);
@@ -60,7 +59,6 @@ class CategorieController extends Controller
     {
         $data = $request->validate([
             'nomCategorie' => 'required|string|max:255',
-            'description' => 'nullable|string',
         ]);
 
         $category->update($data);

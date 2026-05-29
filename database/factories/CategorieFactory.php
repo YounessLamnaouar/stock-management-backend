@@ -10,16 +10,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CategorieFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        static $names = [
+            'Électronique', 'Mobilier', 'Alimentaire', 'Textile', 'Chimie',
+            'Mécanique', 'Informatique', 'Papeterie', 'Sanitaire', 'Outillage',
+        ];
+        static $index = 0;
+
         return [
-            'nomCategorie' => fake()->unique()->word(),
-            'description' => fake()->sentence(),
+            'nomCategorie' => $names[$index++ % count($names)],
         ];
     }
 }

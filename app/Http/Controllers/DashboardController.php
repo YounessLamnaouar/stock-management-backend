@@ -17,15 +17,13 @@ class DashboardController extends Controller
         $totalMouvements = MovementStock::count();
         $ruptures        = Stock::where('quantite', 0)->count();
 
-        // Stock by warehouse for bar chart
         $stockParEntrepot = Entrepot::withSum('stocks', 'quantite')->get()
             ->map(fn($e) => [
-                'name'     => $e->nomEntrepot,
-                'stock'    => (int) $e->stocks_sum_quantite,
-                'capacite' => $e->capacite ?? 0,
+                'name'        => $e->nomEntrepot,
+                'stock'       => (int) $e->stocks_sum_quantite,
+                'capaciteMax' => $e->capaciteMax ?? 0,
             ]);
 
-        // Products by category for pie chart
         $produitsParCategorie = Produit::select('categorie_id', DB::raw('count(*) as total'))
             ->with('categorie:id,nomCategorie')
             ->groupBy('categorie_id')
@@ -35,11 +33,17 @@ class DashboardController extends Controller
                 'value' => $p->total,
             ]);
 
-        // Recent movements
         $recentMouvements = MovementStock::with('produit', 'user', 'statusMouvement', 'entrepotSource', 'entrepotDestination')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
+
+        $mouvementsParJour = MovementStock::selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(fn($m) => ['date' => $m->date, 'total' => (int) $m->total]);
 
         return response()->json([
             'totalProduits'        => $totalProduits,
@@ -49,6 +53,7 @@ class DashboardController extends Controller
             'stockParEntrepot'     => $stockParEntrepot,
             'produitsParCategorie' => $produitsParCategorie,
             'recentMouvements'     => $recentMouvements,
+            'mouvementsParJour'    => $mouvementsParJour,
         ]);
     }
 }

@@ -10,18 +10,23 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class EntrepotFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $entrepots = [
+            ['nom' => 'Entrepôt Casablanca', 'adresse' => 'Zone Industrielle Sidi Maarouf, Casablanca'],
+            ['nom' => 'Entrepôt Rabat',      'adresse' => 'Zone Industrielle Ain Aouda, Rabat'],
+            ['nom' => 'Entrepôt Marrakech',  'adresse' => 'Zone Industrielle Sidi Ghanem, Marrakech'],
+            ['nom' => 'Entrepôt Tanger',     'adresse' => 'Zone Franche de Tanger, Tanger'],
+            ['nom' => 'Entrepôt Fès',        'adresse' => 'Zone Industrielle Saïss, Fès'],
+        ];
+
+        static $index = 0;
+        $e = $entrepots[$index++ % count($entrepots)];
+
         return [
-            'nomEntrepot' => 'Entrepot ' . fake()->city(),
-            'adresse' => fake()->address(),
-            'ville' => fake()->city(),
-            'capacite' => fake()->numberBetween(100, 1000),
+            'nomEntrepot' => $e['nom'],
+            'adresse'     => $e['adresse'],
+            'capaciteMax' => fake()->numberBetween(500, 2000),
         ];
     }
 }

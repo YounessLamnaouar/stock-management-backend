@@ -13,8 +13,6 @@ return new class extends Migration
     {
         Schema::create('tracabilites', function (Blueprint $table) {
             $table->id();
-            $table->string('action');
-            $table->text('description')->nullable();
             $table->integer('ancienneQuantite')->nullable();
             $table->integer('nouvelleQuantite')->nullable();
             $table->dateTime('dateAction');

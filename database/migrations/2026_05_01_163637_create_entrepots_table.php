@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nomEntrepot');
             $table->string('adresse')->nullable();
-            $table->string('ville')->nullable();
-            $table->integer('capacite')->nullable();
+            $table->integer('capaciteMax')->nullable();
             $table->timestamps();
         });
     }

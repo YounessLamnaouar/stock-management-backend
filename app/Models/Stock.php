@@ -9,6 +9,8 @@ class Stock extends Model
 {
     use HasFactory;
 
+    protected $table = 'stock_produit';
+
     protected $fillable = [
         'quantite',
         'dateMiseAJour',

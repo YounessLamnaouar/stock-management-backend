@@ -13,8 +13,7 @@ class Entrepot extends Model
     protected $fillable = [
         'nomEntrepot',
         'adresse',
-        'ville',
-        'capacite',
+        'capaciteMax',
     ];
 
     // Relation : un entrepôt possède plusieurs stocks

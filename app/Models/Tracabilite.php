@@ -11,8 +11,6 @@ class Tracabilite extends Model
     use HasFactory;
 
     protected $fillable = [
-        'action',
-        'description',
         'ancienneQuantite',
         'nouvelleQuantite',
         'dateAction',

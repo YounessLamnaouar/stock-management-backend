@@ -7,21 +7,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Drop existing trigger if it exists (safe re-run)
         DB::unprepared('DROP TRIGGER IF EXISTS after_stocks_qty_update');
 
-        // MySQL trigger: fires AFTER any UPDATE that changes quantiteDisponible.
-        // Reads the current user_id from the stock_user_context helper table
-        // (set by the PHP controller before each stock update).
         DB::unprepared('
             CREATE TRIGGER after_stocks_qty_update
-            AFTER UPDATE ON stocks
+            AFTER UPDATE ON stock_produit
             FOR EACH ROW
             BEGIN
                 IF NEW.quantite != OLD.quantite THEN
                     INSERT INTO tracabilites (
-                        action,
-                        description,
                         ancienneQuantite,
                         nouvelleQuantite,
                         produit_id,
@@ -31,8 +25,6 @@ return new class extends Migration
                         updated_at
                     )
                     VALUES (
-                        \'UPDATE_STOCK\',
-                        CONCAT(\'Quantité modifiée de \', OLD.quantite, \' à \', NEW.quantite),
                         OLD.quantite,
                         NEW.quantite,
                         NEW.produit_id,

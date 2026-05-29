@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Entrepot;
 use App\Models\MovementStock;
 use App\Models\Stock;
 use Illuminate\Http\Request;
@@ -128,13 +129,29 @@ class MovementStockController extends Controller
         }
 
         if (!empty($data['entrepot_destination_id'])) {
-            $stock = Stock::firstOrCreate(
-                ['produit_id' => $produitId, 'entrepot_id' => $data['entrepot_destination_id']],
+            $destId   = $data['entrepot_destination_id'];
+            $entrepot = Entrepot::findOrFail($destId);
+
+            $existingStock = Stock::firstOrNew(
+                ['produit_id' => $produitId, 'entrepot_id' => $destId],
                 ['quantite' => 0, 'dateMiseAJour' => now()->toDateString()]
             );
 
-            $stock->update([
-                'quantite'      => $stock->quantite + $quantite,
+            $newQty     = $existingStock->quantite + $quantite;
+            $totalStock = Stock::where('entrepot_id', $destId)
+                ->where('produit_id', '!=', $produitId)
+                ->sum('quantite');
+
+            if ($entrepot->capaciteMax !== null && ($totalStock + $newQty) > $entrepot->capaciteMax) {
+                throw new \Exception("Cet entrepôt est saturé (capacité max: {$entrepot->capaciteMax}).");
+            }
+
+            if (!$existingStock->exists) {
+                $existingStock->save();
+            }
+
+            $existingStock->update([
+                'quantite'      => $newQty,
                 'dateMiseAJour' => now()->toDateString(),
             ]);
         }
