@@ -19,8 +19,10 @@ Route::post('/login',    [AuthController::class, 'login']);
 // Authenticated routes
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/me',      [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me',               [AuthController::class, 'me']);
+    Route::put('/profile',          [AuthController::class, 'updateProfile']);
+    Route::put('/profile/password', [AuthController::class, 'updatePassword']);
+    Route::post('/logout',          [AuthController::class, 'logout']);
 
     // Dashboard stats — accessible by all roles
     Route::get('/dashboard', [DashboardController::class, 'stats']);

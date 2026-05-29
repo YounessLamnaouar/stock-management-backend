@@ -60,6 +60,35 @@ class AuthController extends Controller
         ]);
     }
 
+    public function updateProfile(Request $request)
+    {
+        $data = $request->validate([
+            'prenom' => 'sometimes|string|max:255',
+            'name'   => 'required|string|max:255',
+            'email'  => 'required|email|unique:users,email,' . $request->user()->id,
+        ]);
+
+        $request->user()->update($data);
+
+        return response()->json(['user' => $request->user()->fresh()->load('role')]);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:6|confirmed',
+        ]);
+
+        if (! Hash::check($request->current_password, $request->user()->password)) {
+            return response()->json(['message' => 'Mot de passe actuel incorrect.'], 422);
+        }
+
+        $request->user()->update(['password' => Hash::make($request->password)]);
+
+        return response()->json(['message' => 'Mot de passe mis à jour avec succès.']);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

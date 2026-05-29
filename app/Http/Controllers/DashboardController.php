@@ -38,12 +38,19 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $mouvementsParJour = MovementStock::selectRaw('DATE(created_at) as date, COUNT(*) as total')
-            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+        $dates = collect(range(6, 0))->map(fn($i) => now()->subDays($i)->toDateString());
+
+        $rawMvt = MovementStock::selectRaw('DATE(dateMouvement) as date, COUNT(*) as total')
+            ->whereBetween('dateMouvement', [$dates->first(), $dates->last()])
             ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(fn($m) => ['date' => $m->date, 'total' => (int) $m->total]);
+            ->keyBy('date');
+
+        $mouvementsParJour = $dates->map(fn($d) => [
+            'date'  => $d,
+            'total' => $rawMvt->has($d) ? (int) $rawMvt[$d]->total : 0,
+        ])->values();
 
         return response()->json([
             'totalProduits'        => $totalProduits,
