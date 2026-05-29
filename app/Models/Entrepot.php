@@ -13,8 +13,7 @@ class Entrepot extends Model
     protected $fillable = [
         'nomEntrepot',
         'adresse',
-        'ville',
-        'capacite',
+        'capaciteMax',
     ];
 
     // Relation : un entrepôt possède plusieurs stocks
@@ -24,8 +23,13 @@ class Entrepot extends Model
     }
 
     // Relation : un entrepôt possède plusieurs mouvements de stock
-    public function movementStocks()
+    public function mouvementsSource()
     {
-        return $this->hasMany(MovementStock::class);
+        return $this->hasMany(MovementStock::class, 'entrepot_source_id');
+    }
+
+    public function mouvementsDestination()
+    {
+        return $this->hasMany(MovementStock::class, 'entrepot_destination_id');
     }
 }

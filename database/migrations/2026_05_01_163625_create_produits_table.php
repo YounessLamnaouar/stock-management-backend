@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('produits', function (Blueprint $table) {
             $table->id();
-            $table->string('codeProduit')->unique();
             $table->string('nomProduit');
-            $table->text('description')->nullable();
             $table->string('unite');
             $table->date('dateCreation')->nullable();
 

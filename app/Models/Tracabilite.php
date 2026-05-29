@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Entrepot;
 
 class Tracabilite extends Model
 {
@@ -11,15 +12,26 @@ class Tracabilite extends Model
     use HasFactory;
 
     protected $fillable = [
-        'action',
-        'description',
+        'ancienneQuantite',
+        'nouvelleQuantite',
         'dateAction',
         'user_id',
+        'produit_id',
+        'entrepot_id',
     ];
 
-    // Relation : une trace appartient à un utilisateur
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function produit()
+    {
+        return $this->belongsTo(Produit::class);
+    }
+
+    public function entrepot()
+    {
+        return $this->belongsTo(Entrepot::class);
     }
 }

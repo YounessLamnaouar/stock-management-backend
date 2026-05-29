@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->date('dateMouvement');
             $table->integer('quantite');
-            $table->text('commentaire')->nullable();
-
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
@@ -25,13 +23,19 @@ return new class extends Migration
                 ->constrained('produits')
                 ->cascadeOnDelete();
 
-            $table->foreignId('type_mouvement_id')
-                ->constrained('type_mouvements')
+            $table->foreignId('status_mouvement_id')
+                ->constrained('status_mouvements')
                 ->cascadeOnDelete();
 
-            $table->foreignId('entrepot_id')
+            $table->foreignId('entrepot_source_id')
+                ->nullable()
                 ->constrained('entrepots')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
+
+            $table->foreignId('entrepot_destination_id')
+                ->nullable()
+                ->constrained('entrepots')
+                ->nullOnDelete();
 
             $table->timestamps();
         });

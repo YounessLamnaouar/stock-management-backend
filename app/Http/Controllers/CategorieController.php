@@ -13,13 +13,13 @@ class CategorieController extends Controller
      */
     public function index()
     {
-        //
+        return Categorie::with('produits')->get();
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         //
     }
@@ -29,21 +29,25 @@ class CategorieController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'nomCategorie' => 'required|string|max:255',
+        ]);
+
+        return Categorie::create($data);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Categorie $categorie)
+    public function show(Categorie $category)
     {
-        //
+        return $category->load('produits');
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Categorie $categorie)
+    public function edit(Categorie $category)
     {
         //
     }
@@ -51,16 +55,23 @@ class CategorieController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Categorie $categorie)
+    public function update(Request $request, Categorie $category)
     {
-        //
+        $data = $request->validate([
+            'nomCategorie' => 'required|string|max:255',
+        ]);
+
+        $category->update($data);
+        return $category;
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Categorie $categorie)
+    public function destroy(Categorie $category)
     {
-        //
+        $category->delete();
+
+        return response()->json(['message' => 'Catégorie supprimée']);
     }
 }

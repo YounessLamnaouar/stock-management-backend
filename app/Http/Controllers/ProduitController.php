@@ -13,7 +13,7 @@ class ProduitController extends Controller
      */
     public function index()
     {
-        //
+        return Produit::with('categorie')->get();
     }
 
     /**
@@ -29,7 +29,16 @@ class ProduitController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'nomProduit' => 'required|string|max:255',
+            'unite' => 'required|string',
+            'dateCreation' => 'nullable|date',
+            'categorie_id' => 'required|exists:categories,id',
+        ]);
+
+        $data['dateCreation'] = $data['dateCreation'] ?? now()->toDateString();
+
+        return Produit::create($data);
     }
 
     /**
@@ -37,7 +46,7 @@ class ProduitController extends Controller
      */
     public function show(Produit $produit)
     {
-        //
+        return $produit->load('categorie', 'stocks');
     }
 
     /**
@@ -53,7 +62,16 @@ class ProduitController extends Controller
      */
     public function update(Request $request, Produit $produit)
     {
-        //
+        $data = $request->validate([
+            'nomProduit' => 'required|string|max:255',
+            'unite' => 'required|string',
+            'dateCreation' => 'nullable|date',
+            'categorie_id' => 'required|exists:categories,id',
+        ]);
+
+        $produit->update($data);
+
+        return $produit;
     }
 
     /**
@@ -61,6 +79,8 @@ class ProduitController extends Controller
      */
     public function destroy(Produit $produit)
     {
-        //
+        $produit->delete();
+
+        return response()->json(['message' => 'Produit supprimé']);
     }
 }
