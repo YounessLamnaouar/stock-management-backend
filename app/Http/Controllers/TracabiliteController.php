@@ -10,7 +10,7 @@ class TracabiliteController extends Controller
     // Read-only: records are auto-inserted by the DB trigger (after_stocks_qty_update)
     public function index(Request $request)
     {
-        $query = Tracabilite::with('user', 'produit')
+        $query = Tracabilite::with('user', 'produit', 'entrepot')
             ->orderBy('dateAction', 'desc');
 
         if ($request->filled('user_id')) {
@@ -26,6 +26,6 @@ class TracabiliteController extends Controller
 
     public function show(Tracabilite $tracabilite)
     {
-        return $tracabilite->load('user', 'produit');
+        return $tracabilite->load('user', 'produit', 'entrepot');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Entrepot;
 use App\Models\MovementStock;
+use App\Models\StatusMouvement;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,24 +31,17 @@ class MovementStockController extends Controller
             'entrepot_source_id'      => 'nullable|exists:entrepots,id',
             'entrepot_destination_id' => 'nullable|exists:entrepots,id',
             'dateMouvement'           => 'required|date',
-            'status_mouvement_id'     => 'required|exists:status_mouvements,id',
         ]);
 
         if (empty($data['entrepot_source_id']) && empty($data['entrepot_destination_id'])) {
             return response()->json(['message' => 'Au moins une source ou une destination est requise.'], 422);
         }
 
+        $enCours = StatusMouvement::where('nomStatus', 'En cours')->first();
+        $data['status_mouvement_id'] = $enCours?->id ?? 1;
         $data['user_id'] = auth()->id();
 
-        $mouvement = null;
-
-        DB::transaction(function () use ($data, &$mouvement) {
-            DB::table('stock_user_context')->update(['user_id' => $data['user_id']]);
-
-            $mouvement = MovementStock::create($data);
-
-            $this->applyStockChanges($data);
-        });
+        $mouvement = MovementStock::create($data);
 
         return response()->json(
             $mouvement->load('produit', 'user', 'statusMouvement', 'entrepotSource', 'entrepotDestination'),
@@ -65,9 +59,34 @@ class MovementStockController extends Controller
             'entrepot_destination_id' => 'nullable|exists:entrepots,id',
         ]);
 
-        $movementStock->update($data);
+        $oldStatusId = $movementStock->status_mouvement_id;
+        $newStatusId = $data['status_mouvement_id'] ?? $oldStatusId;
 
-        return response()->json($movementStock->load('produit', 'user', 'statusMouvement', 'entrepotSource', 'entrepotDestination'));
+        $valideeId     = StatusMouvement::where('nomStatus', 'Validée')->value('id');
+        $shouldApply   = $valideeId
+            && (int)$newStatusId  === (int)$valideeId
+            && (int)$oldStatusId  !== (int)$valideeId;
+
+        if ($shouldApply) {
+            try {
+                DB::transaction(function () use ($movementStock, $data) {
+                    $movementStock->update($data);
+                    DB::table('stock_user_context')->update(['user_id' => auth()->id()]);
+                    $this->applyStockChanges([
+                        'produit_id'              => $movementStock->produit_id,
+                        'quantite'                => $movementStock->quantite,
+                        'entrepot_source_id'      => $movementStock->entrepot_source_id,
+                        'entrepot_destination_id' => $movementStock->entrepot_destination_id,
+                    ]);
+                });
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+        } else {
+            $movementStock->update($data);
+        }
+
+        return response()->json($movementStock->fresh()->load('produit', 'user', 'statusMouvement', 'entrepotSource', 'entrepotDestination'));
     }
 
     public function destroy(MovementStock $movementStock)
@@ -120,12 +139,17 @@ class MovementStockController extends Controller
                 ->where('entrepot_id', $data['entrepot_source_id'])
                 ->first();
 
-            if ($stock) {
-                $stock->update([
-                    'quantite'      => max(0, $stock->quantite - $quantite),
-                    'dateMiseAJour' => now()->toDateString(),
-                ]);
+            $available = $stock?->quantite ?? 0;
+            if (!$stock || $available < $quantite) {
+                throw new \Exception(
+                    "Stock insuffisant dans l'entrepôt source. Disponible : {$available}, demandé : {$quantite}."
+                );
             }
+
+            $stock->update([
+                'quantite'      => $available - $quantite,
+                'dateMiseAJour' => now()->toDateString(),
+            ]);
         }
 
         if (!empty($data['entrepot_destination_id'])) {

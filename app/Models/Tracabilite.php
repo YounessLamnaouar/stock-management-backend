@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Entrepot;
 
 class Tracabilite extends Model
 {
@@ -16,6 +17,7 @@ class Tracabilite extends Model
         'dateAction',
         'user_id',
         'produit_id',
+        'entrepot_id',
     ];
 
     public function user()
@@ -26,5 +28,10 @@ class Tracabilite extends Model
     public function produit()
     {
         return $this->belongsTo(Produit::class);
+    }
+
+    public function entrepot()
+    {
+        return $this->belongsTo(Entrepot::class);
     }
 }

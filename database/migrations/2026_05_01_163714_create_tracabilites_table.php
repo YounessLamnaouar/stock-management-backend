@@ -21,6 +21,11 @@ return new class extends Migration
                 ->constrained('produits')
                 ->cascadeOnDelete();
 
+            $table->foreignId('entrepot_id')
+                ->nullable()
+                ->constrained('entrepots')
+                ->nullOnDelete();
+
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
