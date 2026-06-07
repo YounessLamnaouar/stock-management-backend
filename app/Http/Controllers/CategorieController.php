@@ -5,56 +5,39 @@ namespace App\Http\Controllers;
 use App\Models\Categorie;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CategorieController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return Categorie::with('produits')->get();
+        return Cache::remember('api_categories', 60, function () {
+            return Categorie::select('id', 'nomCategorie', 'created_at', 'updated_at')->get();
+        });
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $request)
-    {
-        //
-    }
+    public function create(Request $request) {}
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
             'nomCategorie' => 'required|string|max:255',
         ]);
 
-        return Categorie::create($data);
+        $categorie = Categorie::create($data);
+        Cache::forget('api_categories');
+        Cache::forget('api_produits');
+
+        return $categorie;
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Categorie $category)
     {
         return $category->load('produits');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Categorie $category)
-    {
-        //
-    }
+    public function edit(Categorie $category) {}
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Categorie $category)
     {
         $data = $request->validate([
@@ -62,15 +45,17 @@ class CategorieController extends Controller
         ]);
 
         $category->update($data);
+        Cache::forget('api_categories');
+        Cache::forget('api_produits');
+
         return $category;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Categorie $category)
     {
         $category->delete();
+        Cache::forget('api_categories');
+        Cache::forget('api_produits');
 
         return response()->json(['message' => 'Catégorie supprimée']);
     }
