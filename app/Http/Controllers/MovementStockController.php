@@ -7,15 +7,32 @@ use App\Models\MovementStock;
 use App\Models\StatusMouvement;
 use App\Models\Stock;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class MovementStockController extends Controller
 {
+    private const WITH = [
+        'produit:id,nomProduit',
+        'statusMouvement:id,nomStatus',
+        'entrepotSource:id,nomEntrepot',
+        'entrepotDestination:id,nomEntrepot',
+    ];
+
+    private const SELECT = [
+        'id', 'dateMouvement', 'quantite', 'created_at',
+        'produit_id', 'status_mouvement_id',
+        'entrepot_source_id', 'entrepot_destination_id',
+    ];
+
     public function index()
     {
-        return MovementStock::with('produit', 'user', 'statusMouvement', 'entrepotSource', 'entrepotDestination')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return Cache::remember('api_movements', 60, function () {
+            return MovementStock::select(self::SELECT)
+                ->with(self::WITH)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        });
     }
 
     public function show(MovementStock $movementStock)
@@ -37,14 +54,19 @@ class MovementStockController extends Controller
             return response()->json(['message' => 'Au moins une source ou une destination est requise.'], 422);
         }
 
-        $enCours = StatusMouvement::where('nomStatus', 'En cours')->first();
-        $data['status_mouvement_id'] = $enCours?->id ?? 1;
+        $data['status_mouvement_id'] = Cache::rememberForever(
+            'status_en_cours_id',
+            fn () => StatusMouvement::where('nomStatus', 'En cours')->value('id') ?? 1
+        );
         $data['user_id'] = auth()->id();
 
         $mouvement = MovementStock::create($data);
 
+        Cache::forget('api_movements');
+        Cache::forget('api_dashboard');
+
         return response()->json(
-            $mouvement->load('produit', 'user', 'statusMouvement', 'entrepotSource', 'entrepotDestination'),
+            $mouvement->load(self::WITH),
             201
         );
     }
@@ -62,10 +84,14 @@ class MovementStockController extends Controller
         $oldStatusId = $movementStock->status_mouvement_id;
         $newStatusId = $data['status_mouvement_id'] ?? $oldStatusId;
 
-        $valideeId     = StatusMouvement::where('nomStatus', 'Validée')->value('id');
-        $shouldApply   = $valideeId
-            && (int)$newStatusId  === (int)$valideeId
-            && (int)$oldStatusId  !== (int)$valideeId;
+        $valideeId = Cache::rememberForever(
+            'status_validee_id',
+            fn () => StatusMouvement::where('nomStatus', 'Validée')->value('id')
+        );
+
+        $shouldApply = $valideeId
+            && (int) $newStatusId === (int) $valideeId
+            && (int) $oldStatusId !== (int) $valideeId;
 
         if ($shouldApply) {
             try {
@@ -79,6 +105,7 @@ class MovementStockController extends Controller
                         'entrepot_destination_id' => $movementStock->entrepot_destination_id,
                     ]);
                 });
+                Cache::forget('api_stocks');
             } catch (\Exception $e) {
                 return response()->json(['message' => $e->getMessage()], 422);
             }
@@ -86,12 +113,18 @@ class MovementStockController extends Controller
             $movementStock->update($data);
         }
 
-        return response()->json($movementStock->fresh()->load('produit', 'user', 'statusMouvement', 'entrepotSource', 'entrepotDestination'));
+        Cache::forget('api_movements');
+        Cache::forget('api_dashboard');
+
+        return response()->json($movementStock->refresh()->load(self::WITH));
     }
 
     public function destroy(MovementStock $movementStock)
     {
         $movementStock->delete();
+        Cache::forget('api_movements');
+        Cache::forget('api_dashboard');
+
         return response()->json(['message' => 'Mouvement supprimé']);
     }
 
@@ -118,7 +151,7 @@ class MovementStockController extends Controller
                     $m->entrepotSource->nomEntrepot ?? '—',
                     $m->entrepotDestination->nomEntrepot ?? '—',
                     $m->dateMouvement,
-                    ($m->user->prenom ?? '') . ' ' . ($m->user->name ?? ''),
+                    trim(($m->user->prenom ?? '') . ' ' . ($m->user->name ?? '')),
                     $m->statusMouvement->nomStatus ?? '',
                 ]);
             }
@@ -135,11 +168,11 @@ class MovementStockController extends Controller
         $quantite  = $data['quantite'];
 
         if (!empty($data['entrepot_source_id'])) {
-            $stock = Stock::where('produit_id', $produitId)
+            $stock     = Stock::where('produit_id', $produitId)
                 ->where('entrepot_id', $data['entrepot_source_id'])
                 ->first();
-
             $available = $stock?->quantite ?? 0;
+
             if (!$stock || $available < $quantite) {
                 throw new \Exception(
                     "Stock insuffisant dans l'entrepôt source. Disponible : {$available}, demandé : {$quantite}."
@@ -153,9 +186,8 @@ class MovementStockController extends Controller
         }
 
         if (!empty($data['entrepot_destination_id'])) {
-            $destId   = $data['entrepot_destination_id'];
-            $entrepot = Entrepot::findOrFail($destId);
-
+            $destId        = $data['entrepot_destination_id'];
+            $entrepot      = Entrepot::findOrFail($destId);
             $existingStock = Stock::firstOrNew(
                 ['produit_id' => $produitId, 'entrepot_id' => $destId],
                 ['quantite' => 0, 'dateMiseAJour' => now()->toDateString()]

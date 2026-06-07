@@ -5,13 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Entrepot;
 use App\Models\Stock;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class StockController extends Controller
 {
     public function index()
     {
-        return Stock::with('produit.categorie', 'entrepot')->get();
+        return Cache::remember('api_stocks', 60, function () {
+            return Stock::select('id', 'quantite', 'dateMiseAJour', 'produit_id', 'entrepot_id', 'created_at', 'updated_at')
+                ->with([
+                    'produit:id,nomProduit',
+                    'entrepot:id,nomEntrepot',
+                ])
+                ->get();
+        });
     }
 
     public function store(Request $request)
@@ -33,8 +41,13 @@ class StockController extends Controller
         }
 
         $stock = Stock::create($data);
+        Cache::forget('api_stocks');
+        Cache::forget('api_dashboard');
 
-        return response()->json($stock->load('produit', 'entrepot'), 201);
+        return response()->json(
+            $stock->load('produit:id,nomProduit', 'entrepot:id,nomEntrepot'),
+            201
+        );
     }
 
     public function show(Stock $stock)
@@ -66,15 +79,20 @@ class StockController extends Controller
         }
 
         DB::table('stock_user_context')->update(['user_id' => auth()->id()]);
-
         $stock->update($data);
 
-        return response()->json($stock->load('produit', 'entrepot'));
+        Cache::forget('api_stocks');
+        Cache::forget('api_dashboard');
+
+        return response()->json($stock->load('produit:id,nomProduit', 'entrepot:id,nomEntrepot'));
     }
 
     public function destroy(Stock $stock)
     {
         $stock->delete();
+        Cache::forget('api_stocks');
+        Cache::forget('api_dashboard');
+
         return response()->json(['message' => 'Stock supprimé']);
     }
 }

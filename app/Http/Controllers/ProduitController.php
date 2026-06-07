@@ -5,81 +5,65 @@ namespace App\Http\Controllers;
 use App\Models\Produit;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProduitController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return Produit::with('categorie')->get();
+        return Cache::remember('api_produits', 60, function () {
+            return Produit::with('categorie:id,nomCategorie')->get();
+        });
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+    public function create() {}
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nomProduit' => 'required|string|max:255',
-            'unite' => 'required|string',
+            'nomProduit'   => 'required|string|max:255',
+            'unite'        => 'required|string',
             'dateCreation' => 'nullable|date',
             'categorie_id' => 'required|exists:categories,id',
         ]);
 
         $data['dateCreation'] = $data['dateCreation'] ?? now()->toDateString();
 
-        return Produit::create($data);
+        $produit = Produit::create($data);
+        Cache::forget('api_produits');
+        Cache::forget('api_dashboard');
+
+        return response()->json($produit->load('categorie:id,nomCategorie'), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Produit $produit)
     {
         return $produit->load('categorie', 'stocks');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Produit $produit)
-    {
-        //
-    }
+    public function edit(Produit $produit) {}
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Produit $produit)
     {
         $data = $request->validate([
-            'nomProduit' => 'required|string|max:255',
-            'unite' => 'required|string',
+            'nomProduit'   => 'required|string|max:255',
+            'unite'        => 'required|string',
             'dateCreation' => 'nullable|date',
             'categorie_id' => 'required|exists:categories,id',
         ]);
 
         $produit->update($data);
+        Cache::forget('api_produits');
+        Cache::forget('api_dashboard');
 
-        return $produit;
+        return $produit->load('categorie:id,nomCategorie');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Produit $produit)
     {
         $produit->delete();
+        Cache::forget('api_produits');
+        Cache::forget('api_dashboard');
 
         return response()->json(['message' => 'Produit supprimé']);
     }
