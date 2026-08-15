@@ -12,6 +12,11 @@ use App\Http\Controllers\TracabiliteController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+// Preflight OPTIONS handler
+Route::options('/{any}', function () {
+    return response('', 204);
+})->where('any', '.*');
+
 // Auth (public)
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
