@@ -19,29 +19,35 @@ class DatabaseSeeder extends Seeder
             StatusMouvementSeeder::class,
         ]);
 
-        User::create([
-            'name'     => 'Admin',
-            'prenom'   => 'Super',
-            'email'    => 'admin@gmail.com',
-            'password' => bcrypt('123456'),
-            'role_id'  => 1,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name'     => 'Admin',
+                'prenom'   => 'Super',
+                'password' => bcrypt('123456'),
+                'role_id'  => 1,
+            ]
+        );
 
-        User::create([
-            'name'     => 'Gestionnaire',
-            'prenom'   => 'Marie',
-            'email'    => 'gestionnaire@gmail.com',
-            'password' => bcrypt('123456'),
-            'role_id'  => 2,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'gestionnaire@gmail.com'],
+            [
+                'name'     => 'Gestionnaire',
+                'prenom'   => 'Marie',
+                'password' => bcrypt('123456'),
+                'role_id'  => 2,
+            ]
+        );
 
-        User::create([
-            'name'     => 'Agent',
-            'prenom'   => 'Ahmed',
-            'email'    => 'agent@gmail.com',
-            'password' => bcrypt('123456'),
-            'role_id'  => 3,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'agent@gmail.com'],
+            [
+                'name'     => 'Agent',
+                'prenom'   => 'Ahmed',
+                'password' => bcrypt('123456'),
+                'role_id'  => 3,
+            ]
+        );
 
         Categorie::factory(10)->create();
         Produit::factory(50)->create();

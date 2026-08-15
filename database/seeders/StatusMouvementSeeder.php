@@ -12,7 +12,7 @@ class StatusMouvementSeeder extends Seeder
         $statuts = ['En cours', 'Validée', 'Annulée'];
 
         foreach ($statuts as $nom) {
-            StatusMouvement::create(['nomStatus' => $nom]);
+            StatusMouvement::firstOrCreate(['nomStatus' => $nom]);
         }
     }
 }
